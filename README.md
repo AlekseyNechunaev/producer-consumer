@@ -1,1 +1,1 @@
-# producer-consumer
+Реализация паттерна producer-consumer
