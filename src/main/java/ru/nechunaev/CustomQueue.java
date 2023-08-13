@@ -11,7 +11,7 @@ public class CustomQueue {
     private final Queue<Resource> resources = new LinkedList<>();
     private final Object lock = new Object();
     private final int maxSize;
-    private long lastProduce;
+
 
     public CustomQueue(int maxSize) {
         this.maxSize = maxSize;
@@ -24,15 +24,15 @@ public class CustomQueue {
                 try {
                     log.info("Thread PRODUCE with id {} is waiting", currentThreadId);
                     lock.wait();
+                    resources.add(resource);
+                    log.info("Thread with id {} produce resource with resourceId = {}", currentThreadId, resource.getId());
+                    log.info("number of resources in stock = {} after produce", resources.size());
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
+                } finally {
+                    lock.notifyAll();
                 }
             }
-            resources.add(resource);
-            log.info("Thread with id {} produce resource with resourceId = {}", currentThreadId, resource.getId());
-            log.info("number of resources in stock = {} after produce", resources.size());
-            lastProduce = System.currentTimeMillis();
-            lock.notifyAll();
         }
     }
 
@@ -43,14 +43,15 @@ public class CustomQueue {
                 try {
                     log.info("Thread CONSUME with id {} is waiting", currentThreadId);
                     lock.wait();
+                    Resource resource = resources.remove();
+                    log.info("Thread with id {} consume resource with resourceId = {}", currentThreadId, resource.getId());
+                    log.info("number of resources in stock = {} after consume", resources.size());
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
+                } finally {
+                    lock.notifyAll();
                 }
             }
-            Resource resource = resources.remove();
-            log.info("Thread with id {} consume resource with resourceId = {}", currentThreadId, resource.getId());
-            log.info("number of resources in stock = {} after consume", resources.size());
-            lock.notifyAll();
         }
     }
 }
